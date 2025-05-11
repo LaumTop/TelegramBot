@@ -26,6 +26,12 @@ namespace TelegramBot.Core.Utils
 
                     if (role != null)
                     {
+                        if(commands.FirstOrDefault(commands => commands.Name == command.Name) != null)
+                        {
+                            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, $"[ERROR] Command {command.Name.Substring(1)} is not loaded, name already exists. Check {command.GetType().Name}");
+                            hasErrors = true;
+                            continue;
+                        }
                         services.AddSingleton(command);
                         ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Green, $"[SUCCESS] Command {command.Name.Substring(1)} loaded!");
                         commands.Add(command);
