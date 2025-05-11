@@ -2,6 +2,7 @@
 using TelegramBot.Core.Attributes;
 using TelegramBot.Core.Events;
 using TelegramBot.Core.Interfaces;
+using Serilog;
 
 namespace TelegramBot.Core.Utils
 {
@@ -13,7 +14,7 @@ namespace TelegramBot.Core.Utils
             var commandTypes = ReflectionUtils.GetAllAssignableTypes(typeof(ICommand));
             hasErrors = false;
 
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Cyan, "[INFO] Loading commands: \n");
+            Log.Information("Loading commands:");
 
             var provider = services.BuildServiceProvider();
             foreach (var type in commandTypes)
@@ -26,19 +27,20 @@ namespace TelegramBot.Core.Utils
 
                     if (role != null)
                     {
-                        if(commands.FirstOrDefault(commands => commands.Name == command.Name) != null)
+                        if (commands.FirstOrDefault(commands => commands.Name == command.Name) != null)
                         {
-                            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, $"[ERROR] Command {command.Name.Substring(1)} is not loaded, name already exists. Check {command.GetType().Name}");
+                            Log.Error("Command {CommandName} is not loaded, name already exists. Check {CommandType}",
+                                      command.Name.Substring(1), command.GetType().Name);
                             hasErrors = true;
                             continue;
                         }
                         services.AddSingleton(command);
-                        ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Green, $"[SUCCESS] Command {command.Name.Substring(1)} loaded!");
+                        Log.Information("Command {CommandName} loaded", command.Name.Substring(1));
                         commands.Add(command);
                     }
                     else
                     {
-                        ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, $"[ERROR] Command {command.Name.Substring(1)} is not loaded, role attribute required");
+                        Log.Error("Command {CommandName} is not loaded, role attribute required", command.Name.Substring(1));
                         hasErrors = true;
                     }
                 }
@@ -46,22 +48,24 @@ namespace TelegramBot.Core.Utils
 
             return commands;
         }
+
         public static void LoadListeners(ServiceCollection services, EventDispatcher dispatcher)
         {
-            var listenerTypes = ReflectionUtils.GetAllAssignableTypes(typeof(Listener));
+            var listenerTypes = ReflectionUtils.GetAllAssignableTypes(typeof(GroupListener));
             var provider = services.BuildServiceProvider();
 
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Cyan, "[INFO] Loading events");
+            Log.Information("Loading events");
 
             foreach (var type in listenerTypes)
             {
-                if (ActivatorUtilities.CreateInstance(provider, type) is Listener listener)
+                if (ActivatorUtilities.CreateInstance(provider, type) is GroupListener listener)
                 {
                     dispatcher.RegisterListener(listener);
+                    Log.Information("Gorup event listener {ListenerType} registered", listener.GetType().Name);
                 }
             }
 
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Green, "[SUCCESS] All events loaded!");
+            Log.Information("All events loaded!");
         }
     }
 }

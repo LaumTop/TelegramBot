@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
-using TelegramBot.Core.Attributes;
+using Serilog;
 using TelegramBot.Core.Contexts;
 using TelegramBot.Core.Entities;
 using TelegramBot.Core.Events;
@@ -23,29 +23,35 @@ namespace TelegramBot
                 .AddUserSecrets<Program>()
                 .Build();
 
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            Log.Information("Starting bot...");
+
             var services = new ServiceCollection();
 
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Cyan, "[INFO] Starting bot...");
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Yellow, "[INFO] Initializing token...");
+            Log.Information("Initializing token...");
 
             string? token = config["TOKEN"];
             if (string.IsNullOrEmpty(token))
             {
-                ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, "[ERROR] Token is not set. Please set the TOKEN environment variable.");
+                Log.Error("Token is not set. Please set the TOKEN environment variable.");
                 return;
             }
 
             try
             {
                 services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(token));
+                Log.Information("Token initialized successfully.");
             }
             catch (Exception ex)
             {
-                ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, $"[ERROR] Initialization failed: {ex.Message}");
+                Log.Error(ex, "Initialization failed: {Message}", ex.Message);
                 throw;
             }
 
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Cyan, "[INFO] Loading services");
+            Log.Information("Loading services");
 
             services.AddSingleton<IBotService, BotService>();
             services.AddScoped<IUserService, UserService>();
@@ -60,11 +66,12 @@ namespace TelegramBot
             services.AddSingleton<ICollection<ICommand>>(_ => _commands);
 
             if (hasErrors)
-                ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Yellow, "\n[WARNING] Some command(s) have issues.");
-            else
-                ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Green, "\n[SUCCESS] All commands loaded!");
+            {
+                Log.Warning("Some command(s) have issues.");
+            }
 
             Loader.LoadListeners(services, dispatcher);
+
             using var cts = new CancellationTokenSource();
 
             var receiverOptions = new ReceiverOptions
@@ -75,18 +82,22 @@ namespace TelegramBot
             var botClient = provider.GetRequiredService<ITelegramBotClient>();
             var botService = provider.GetRequiredService<IBotService>();
 
+            Log.Information("Starting receiving updates...");
+
             botClient.StartReceiving(
                 async (client, update, token) => await botService.HandleUpdateAsync(client, update, token, _commands),
                 async (client, exception, token) => await botService.HandleErrorAsync(client, exception, token),
                 receiverOptions,
                 cancellationToken: cts.Token
             );
-
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Green, "[INFO] Bot started!");
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Cyan, "[INFO] Press enter to exit");
+            Log.Information("Bot started!");
+            Log.Information("Press enter to exit");
 
             Console.ReadLine();
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Yellow, "[INFO] Stopping bot...");
+
+            Log.Information("Stopping bot...");
+
+            Log.CloseAndFlush();
         }
     }
 }

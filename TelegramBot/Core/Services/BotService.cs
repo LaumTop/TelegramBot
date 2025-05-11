@@ -5,17 +5,22 @@ using TelegramBot.Core.Interfaces;
 using TelegramBot.Core.Attributes;
 using TelegramBot.Core.Events;
 using Telegram.Bot.Types.Enums;
+using Serilog;
+using TelegramBot.Core.Commands;
 
 namespace TelegramBot.Core.Services
 {
     class BotService : IBotService
     {
         private readonly EventDispatcher _dispatcher;
+
         public BotService(EventDispatcher dispatcher)
         {
             _dispatcher = dispatcher;
         }
+
         public static string? token { private set; get; }
+
         public async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken token, ICollection<ICommand> commands)
         {
             if (update.MyChatMember != null &&
@@ -24,22 +29,47 @@ namespace TelegramBot.Core.Services
                 update.MyChatMember.NewChatMember.Status == ChatMemberStatus.Member)
             {
                 await _dispatcher.NotifyBotAddedToGroup(update.MyChatMember.Chat, bot);
-            }
-            if (update.Message is not { Text: { } messageText } message)
+                Log.Information("Bot added to group: {GroupName}", update.MyChatMember.Chat.Title);
                 return;
-            foreach (var command in commands)
+            }
+
+            if (update.Message != null)
             {
-                if (await command.CanExecute(update, bot))
+                var message = update.Message;
+
+                if ((message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup) && message.From != null)
                 {
-                    await command.ExecuteAsync(bot, message, token);
-                    break;
+                    await _dispatcher.NotifyMessageSentInGroup(message.Chat, message, bot);
+                }
+
+                if (message.NewChatMembers != null)
+                {
+                    foreach (var newUser in message.NewChatMembers)
+                    {
+                        await _dispatcher.NotifyUserJoinedInGroup(message.Chat, newUser, bot);
+                    }
+                }
+
+                if (message.LeftChatMember != null)
+                {
+                    await _dispatcher.NotifyUserLeftGroup(message.Chat, message.LeftChatMember, bot);
+                }
+
+                foreach (var command in commands)
+                {
+                    if (await command.CanExecute(update, bot))
+                    {
+                        await command.ExecuteAsync(bot, message, token);
+                        await _dispatcher.NotifyCommandExecuted(message.Chat, message.From!, command as Command, bot);
+                        break;
+                    }
                 }
             }
         }
 
         public Task HandleErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken token)
         {
-            ColoredText.SetConsoleColorAndWriteLine(ConsoleColor.Red, $"[ERROR] Error: {exception.Message}");
+            Log.Error(exception, "Error occurred: {Message}", exception.Message);
             return Task.CompletedTask;
         }
     }

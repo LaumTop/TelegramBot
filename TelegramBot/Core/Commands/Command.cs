@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace TelegramBot.Core.Commands
 {
-    abstract class Command : ICommand
+    public abstract class Command : ICommand
     {
         public abstract string Name { get; }
 
@@ -50,7 +50,7 @@ namespace TelegramBot.Core.Commands
             if (role != null)
             {
                 var member = await bot.GetChatMember(message.Chat.Id, message.From.Id);
-                if (member.Status >= role.Role)
+                if (member.Status < role.Role)
                     return false;
             }
             return true;
