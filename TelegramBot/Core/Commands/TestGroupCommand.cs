@@ -2,7 +2,7 @@
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TelegramBot.Core.Attributes;
-using TelegramBot.Core.Enums;
+using Telegram.Bot.Types.Enums;
 
 namespace TelegramBot.Core.Commands
 {

@@ -1,13 +1,13 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 using TelegramBot.Core.Attributes;
-using TelegramBot.Core.Enums;
+using Telegram.Bot.Types.Enums;
 using TelegramBot.Core.Interfaces;
 
 namespace TelegramBot.Core.Commands
 {
     [Role(Telegram.Bot.Types.Enums.ChatMemberStatus.Member)]
-    [ChatType(ChatType.Private)]
+    [ChatType(new ChatType())]
     class StartCommand : Command
     {
         private readonly IUserService _users;

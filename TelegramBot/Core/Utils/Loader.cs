@@ -23,7 +23,7 @@ namespace TelegramBot.Core.Utils
                 {
                     var role = command.GetType().GetCustomAttributes(typeof(RoleAttribute), true).FirstOrDefault() as RoleAttribute;
                     var chatType = command.GetType().GetCustomAttributes(typeof(ChatTypeAttribute), true).FirstOrDefault() as ChatTypeAttribute
-                                   ?? new ChatTypeAttribute(TelegramBot.Core.Enums.ChatType.All);
+                                   ?? new ChatTypeAttribute(new Telegram.Bot.Types.Enums.ChatType());
 
                     if (role != null)
                     {

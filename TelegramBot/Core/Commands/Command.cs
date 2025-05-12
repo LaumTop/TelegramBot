@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using TelegramBot.Core.Attributes;
 using TelegramBot.Core.Interfaces;
 using System.Reflection;
+using Telegram.Bot.Types.Enums;
 
 namespace TelegramBot.Core.Commands
 {
@@ -17,32 +18,23 @@ namespace TelegramBot.Core.Commands
             var message = update.Message;
             if (message?.Text == null || message.From == null)
                 return false;
-            var cmd = message.Text.Trim().ToLower();
-            if (!(cmd == Name.ToLower() || Aliases.Any(a => a.ToLower() == cmd)))
+
+            var cmd = message.Text.Trim();
+            if (!cmd.Equals(Name, StringComparison.OrdinalIgnoreCase) &&
+                !Aliases.Any(a => cmd.Equals(a, StringComparison.OrdinalIgnoreCase)))
             {
                 return false;
             }
 
-                var chatType = GetType().GetCustomAttribute<ChatTypeAttribute>();
+            var chatType = GetType().GetCustomAttribute<ChatTypeAttribute>();
             if (chatType != null)
             {
-                switch (chatType.ChatType)
+                if (chatType.ChatType == ChatType.Private && message.Chat.Type != ChatType.Private ||
+                    chatType.ChatType == ChatType.Group &&
+                    (message.Chat.Type != ChatType.Group && message.Chat.Type != ChatType.Supergroup) ||
+                    chatType.ChatType == ChatType.Supergroup && message.Chat.Type != ChatType.Supergroup)
                 {
-                    case TelegramBot.Core.Enums.ChatType.Private:
-                        if (message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Private)
-                            return false;
-                        break;
-                    case TelegramBot.Core.Enums.ChatType.Group:
-                        if (message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Group &&
-                            message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Supergroup)
-                            return false;
-                        break;
-                    case TelegramBot.Core.Enums.ChatType.SuperGroup:
-                        if (message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Supergroup)
-                            return false;
-                        break;
-                    case TelegramBot.Core.Enums.ChatType.All:
-                        break;
+                    return false;
                 }
             }
 
@@ -50,9 +42,27 @@ namespace TelegramBot.Core.Commands
             if (role != null)
             {
                 var member = await bot.GetChatMember(message.Chat.Id, message.From.Id);
-                if (member.Status < role.Role)
+
+                int userRank = member.Status switch
+                {
+                    ChatMemberStatus.Creator => 3,
+                    ChatMemberStatus.Administrator => 2,
+                    ChatMemberStatus.Member => 1,
+                    _ => 0
+                };
+
+                int requiredRank = role.Role switch
+                {
+                    ChatMemberStatus.Creator => 3,
+                    ChatMemberStatus.Administrator => 2,
+                    ChatMemberStatus.Member => 1,
+                    _ => 0
+                };
+
+                if (userRank < requiredRank)
                     return false;
             }
+
             return true;
         }
 

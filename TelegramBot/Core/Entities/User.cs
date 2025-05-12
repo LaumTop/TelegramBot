@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using TelegramBot.Core.Enums;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TelegramBot.Core.Entities
 {

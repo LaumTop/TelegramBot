@@ -1,12 +1,12 @@
 ﻿using System;
-using TelegramBot.Core.Enums;
+using Telegram.Bot.Types.Enums;
 
 namespace TelegramBot.Core.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ChatTypeAttribute : Attribute
     {
-        public ChatType ChatType { get; }
+        public ChatType? ChatType { get; }
 
         public ChatTypeAttribute(ChatType chatType)
         {
@@ -14,7 +14,7 @@ namespace TelegramBot.Core.Attributes
         }
         public ChatTypeAttribute()
         {
-            ChatType = ChatType.All;
+            ChatType = null; //Chat type is not specified, will work all chats, if attribute is not set, all chats will  work
         }
     }
 }
