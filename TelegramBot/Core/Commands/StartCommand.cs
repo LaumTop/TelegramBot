@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using TelegramBot.Core.Attributes;
 using Telegram.Bot.Types.Enums;
 using TelegramBot.Core.Interfaces;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.Core.Commands
 {
@@ -18,9 +19,24 @@ namespace TelegramBot.Core.Commands
         public override string Name => "/start";
         public override async Task ExecuteAsync(ITelegramBotClient bot, Message message, CancellationToken cancellationToken)
         {
+            if (message?.From == null)
+                return; // Probably will never happen, but just in case
             var chatId = message.Chat.Id;
-            var text = "Welcome to the bot!";
-            await bot.SendMessage(chatId, text, cancellationToken: cancellationToken);
+            if (await _users.IsUserExistsAsync(message.From.Id))
+            {
+                //TODO: Send information and maybe show menu, with functionality
+                return;
+            }
+            var keyboard = new ReplyKeyboardMarkup(new[]
+            {
+                        new KeyboardButton("Share Contact") { RequestContact = true }
+                    })
+            {
+                ResizeKeyboard = true,
+                OneTimeKeyboard = true
+            };
+            await bot.SendMessage(chatId, "Welcome to the bot\nYou need to register to start using it.", replyMarkup: keyboard, cancellationToken: cancellationToken);
+            //TODO: Add user to database
         }
     }
 }

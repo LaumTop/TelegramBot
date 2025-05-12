@@ -3,6 +3,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace TelegramBot.Core.Attributes
 {
+    //Attribute to specify the type of chat the command can be executed in
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ChatTypeAttribute : Attribute
     {

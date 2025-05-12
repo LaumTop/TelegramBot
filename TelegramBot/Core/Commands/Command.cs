@@ -15,6 +15,7 @@ namespace TelegramBot.Core.Commands
 
         public async Task<bool> CanExecute(Update update, ITelegramBotClient bot)
         {
+            // Check if the command can be executed. Dont change this
             var message = update.Message;
             if (message?.Text == null || message.From == null)
                 return false;

@@ -28,7 +28,7 @@ namespace TelegramBot.Core.Events
                 await notifyAction(listener);
             }
         }
-
+        /// Notify methods for different events
         public Task NotifyBotAddedToGroup(Chat group, ITelegramBotClient bot) =>
             NotifyListeners(l => l.ExecuteOnBotAddedToGroup(group, bot));
 

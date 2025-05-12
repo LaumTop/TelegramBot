@@ -6,5 +6,6 @@ namespace TelegramBot.Core.Events
 {
     public class EventListener : GroupListener
     {
+        //TODO: Implement the methods for the events
     }
 }

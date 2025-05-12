@@ -6,6 +6,7 @@ using TelegramBot.Core.Commands;
 
 namespace TelegramBot.Core.Events
 {
+    //Class for handling group events
     public abstract class GroupListener
     {
         public Task ExecuteOnBotAddedToGroup(Chat group, ITelegramBotClient bot) =>

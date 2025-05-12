@@ -5,6 +5,7 @@ namespace TelegramBot.Core.Contexts
 {
     public class UserContext : DbContext
     {
+        // This is the database context for the User entity
         public DbSet<User> Users { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
