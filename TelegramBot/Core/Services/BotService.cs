@@ -1,9 +1,6 @@
-﻿using TelegramBot.Core.Utils;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using Telegram.Bot;
 using TelegramBot.Core.Interfaces;
-using TelegramBot.Core.Attributes;
-using TelegramBot.Core.Events;
 using Telegram.Bot.Types.Enums;
 using Serilog;
 using TelegramBot.Core.Commands;

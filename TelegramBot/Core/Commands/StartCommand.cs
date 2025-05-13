@@ -7,6 +7,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.Core.Commands
 {
+    //Example of command
     [Role(Telegram.Bot.Types.Enums.ChatMemberStatus.Member)]
     [ChatType(new ChatType())]
     class StartCommand : Command
@@ -36,7 +37,6 @@ namespace TelegramBot.Core.Commands
                 OneTimeKeyboard = true
             };
             await bot.SendMessage(chatId, "Welcome to the bot\nYou need to register to start using it.", replyMarkup: keyboard, cancellationToken: cancellationToken);
-            //TODO: Add user to database
         }
     }
 }

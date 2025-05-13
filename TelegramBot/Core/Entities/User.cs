@@ -2,6 +2,7 @@
 
 namespace TelegramBot.Core.Entities
 {
+    //Example entitie for database
     public class User
     {
         [Key]

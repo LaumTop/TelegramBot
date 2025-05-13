@@ -55,7 +55,7 @@ namespace TelegramBot
 
             services.AddSingleton<IBotService, BotService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddDbContext<UserContext>();
+            services.AddDbContext<UserContext>(); //Example of creating database context
             services.AddSingleton<EventDispatcher>();
 
             var provider = services.BuildServiceProvider();
