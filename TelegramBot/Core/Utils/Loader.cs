@@ -51,7 +51,8 @@ namespace TelegramBot.Core.Utils
 
         public static void LoadListeners(ServiceCollection services, EventDispatcher dispatcher)
         {
-            var listenerTypes = ReflectionUtils.GetAllAssignableTypes(typeof(GroupListener));
+            var listenerTypes = ReflectionUtils.GetAllAssignableTypes(typeof(GroupListener))
+                .Union(ReflectionUtils.GetAllAssignableTypes(typeof(PrivateListener)));
             var provider = services.BuildServiceProvider();
 
             Log.Information("Loading events");
@@ -62,6 +63,10 @@ namespace TelegramBot.Core.Utils
                 {
                     dispatcher.RegisterListener(listener);
                     Log.Information("Gorup event listener {ListenerType} registered", listener.GetType().Name);
+                } if(ActivatorUtilities.CreateInstance(provider, type) is PrivateListener privateListener)
+                {
+                    dispatcher.RegisterListener(privateListener);
+                    Log.Information("Private event listener {ListenerType} registered", privateListener.GetType().Name);
                 }
             }
 

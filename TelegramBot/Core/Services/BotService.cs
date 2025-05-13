@@ -37,9 +37,20 @@ namespace TelegramBot.Core.Services
             {
                 var message = update.Message;
 
+                if(message.Chat.Type == ChatType.Private)
+                {
+                    if(message.Contact != null) await _dispatcher.NotifyPrivChatContactReceived(message, bot);
+                    else if(update.Type == UpdateType.EditedMessage) await _dispatcher.NotifyPrivChatEditedMessageReceived(message, bot);
+                    else if (message.Location != null) await _dispatcher.NotifyPrivChatLocationReceived(message, bot);
+                    else if (message.ReplyToMessage != null) await _dispatcher.NotifyPrivChatMessageReply(message.Chat, message.ReplyToMessage, bot);
+                }
+
                 if ((message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup) && message.From != null)
                 {
                     await _dispatcher.NotifyMessageSentInGroup(message.Chat, message, bot);
+                } else if(message.Chat.Type == ChatType.Private && message.From != null)
+                {
+                    await _dispatcher.NotifyPrivChatMessageSend(message.Chat, message, bot);
                 }
 
                 if (message.NewChatMembers != null)
@@ -60,7 +71,8 @@ namespace TelegramBot.Core.Services
                     if (await command.CanExecute(update, bot))
                     {
                         await command.ExecuteAsync(bot, message, token);
-                        await _dispatcher.NotifyCommandExecuted(message.Chat, message.From!, command as Command, bot);
+                        if(message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup) await _dispatcher.NotifyCommandExecuted(message.Chat, message.From!, command as Command, bot);
+                        else if(message.Chat.Type == ChatType.Private) await _dispatcher.NotifyPrivChatCommandExecuted(message.Chat, message.From!, command as Command, bot);
                         break;
                     }
                 }
